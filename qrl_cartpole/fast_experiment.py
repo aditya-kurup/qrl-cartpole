@@ -425,9 +425,10 @@ def update_artifacts(root: Path, finished_policy_names: list[str]) -> None:
         ax.set_xticks(range(len(labels)), labels, rotation=18, ha="right")
         ax.set_ylim(0, 1.03)
         ax.set_ylabel("Mean non-normal return / 500")
-        seed_counts = ", ".join(f"{name.replace('_', ' ')} n={len(_shift_completed(root, name))}"
-                                 for name in available if _shift_completed(root, name))
-        ax.set_title(f"PRELIMINARY: shift robustness ({seed_counts})")
+        shift_counts = [len(_shift_completed(root, name)) for name in available if _shift_completed(root, name)]
+        seed_label = (f"{shift_counts[0]} seeds per policy" if len(set(shift_counts)) == 1
+                      else "seed counts shown by dots")
+        ax.set_title(f"PRELIMINARY: shift robustness ({seed_label})")
         ax.grid(axis="y", alpha=0.24)
         fig.tight_layout()
         fig.savefig(root / "robustness_bar.png", dpi=200, bbox_inches="tight")
@@ -462,7 +463,7 @@ def _write_table(root: Path, grouped: dict[str, list[dict]]) -> None:
     path = root / "results_table.csv"
     if rows:
         with path.open("w", newline="") as handle:
-            writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+            writer = csv.DictWriter(handle, fieldnames=list(rows[0]), lineterminator="\n")
             writer.writeheader()
             writer.writerows(rows)
 

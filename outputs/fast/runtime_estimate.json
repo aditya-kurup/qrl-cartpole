@@ -1,0 +1,36 @@
+{
+  "created_utc": "2026-11-04T02:47:10Z",
+  "budget_minutes": 90,
+  "selected_seeds": 5,
+  "selected_episodes_per_seed": 400,
+  "workers_available": 10,
+  "measurement_basis": {
+    "benchmark_training_seconds_per_episode": {
+      "quantum_full_mean_8_episodes": 0.03188697412406327,
+      "quantum_full_median_8_episodes": 0.029538728966144845,
+      "mlp_raw_mean_8_episodes": 0.004268895638233516,
+      "mlp_raw_median_8_episodes": 0.003853125002933666
+    },
+    "range_pilot_training_seconds_p95": {
+      "quantum_full_100_episodes": 0.10034245898714289,
+      "mlp_tanhpi_100_episodes": 0.01737645798129961
+    },
+    "evaluation_seconds_per_forward_action": {
+      "quantum_full": 0.0007825072249979712,
+      "mlp_raw": 0.00001890842500142696,
+      "mlp_tanhpi": 0.00002276655819732696,
+      "quantum_noent": 0.0007514843416051008,
+      "quantum_frozen": 0.0006160682250047103
+    }
+  },
+  "conservative_estimate": {
+    "training_assumption": "For each policy family, extrapolate its measured 95th percentile training seconds per step to 500 steps for every one of 400 episodes; five seed jobs run concurrently per policy.",
+    "evaluation_assumption": "Every periodic, final, and shift evaluation episode reaches the 500-step cap; five seed jobs run concurrently per policy.",
+    "training_wall_seconds_before_contention_margin": 1302,
+    "evaluation_wall_seconds_before_contention_margin": 220,
+    "contention_multiplier": 2,
+    "fixed_overhead_minutes": 5,
+    "estimated_wall_minutes": 55.7,
+    "decision": "Keep 5 seeds and 400 episodes; estimate is below the 90-minute wall budget."
+  }
+}

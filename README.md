@@ -14,6 +14,16 @@ python -m pip install -e .
 python -m qrl_cartpole.experiment --episodes 500 --seeds 7 21 42 --eval-interval 10 --out-dir outputs/final
 ```
 
+## Preliminary presentation run
+
+The reduced FAST MODE study trains five policies on five seeds for 400 episodes, evaluates normal CartPole and a gravity-by-pole-length shift grid, and saves slide-ready figures and per-seed checkpoints. The run resumes from completed checkpoints if it is started again.
+
+```bash
+python -m qrl_cartpole.fast_experiment --out-dir outputs/fast --seeds 7 21 42 84 126 --episodes 400
+```
+
+Open `outputs/fast/SUMMARY.md` for the short results overview and `outputs/fast/results_table.csv` for the policy metrics. The run is preliminary, uses a classical statevector simulator, and is not evidence of quantum advantage.
+
 The final presentation run trains both policies for 500 episodes at each of three seeds. It writes `outputs/final/results.json`, one JSON file per policy and seed, `outputs/final/learning_curves.png`, and `outputs/final/variational_circuit.png`.
 
 ## Dashboard

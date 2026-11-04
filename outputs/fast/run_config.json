@@ -1,0 +1,27 @@
+{
+  "policies": [
+    "quantum_full",
+    "mlp_raw",
+    "mlp_tanhpi",
+    "quantum_noent",
+    "quantum_frozen"
+  ],
+  "seeds": [
+    7,
+    21,
+    42,
+    84,
+    126
+  ],
+  "episodes": 400,
+  "eval_interval": 50,
+  "eval_episodes": 10,
+  "final_eval_episodes": 30,
+  "learning_rate": 0.01,
+  "gamma": 0.99,
+  "gradient_clip_norm": 5.0,
+  "entropy_coefficient": 0.0,
+  "workers": 10,
+  "created_utc": "2026-11-04T02:56:48.480092+00:00",
+  "git_commit": "76ea5dda586a28b9e9f4384a7fb49187ef87f39f"
+}

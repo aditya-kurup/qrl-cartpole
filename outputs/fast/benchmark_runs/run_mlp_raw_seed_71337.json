@@ -1,0 +1,64 @@
+{
+  "policy": "mlp_raw",
+  "seed": 71337,
+  "episodes": 8,
+  "completed_episodes": 8,
+  "complete": true,
+  "episode_returns": [
+    14.0,
+    15.0,
+    12.0,
+    24.0,
+    40.0,
+    19.0,
+    13.0,
+    9.0
+  ],
+  "episode_seconds": [
+    0.004245541989803314,
+    0.003456625039689243,
+    0.0031945420196279883,
+    0.004766916041262448,
+    0.007409707992337644,
+    0.004680083016864955,
+    0.003460708016064018,
+    0.00293704099021852
+  ],
+  "seconds_per_training_episode": 0.004268895638233516,
+  "evaluations": [],
+  "parameter_count": 23,
+  "trainable_parameter_count": 23,
+  "metadata": {
+    "timestamp_utc": "2026-11-04T02:45:24.586331+00:00",
+    "git_commit": "574f2945dd2280175849ba2177e37f30dee62cf5",
+    "machine": "arm64",
+    "platform": "macOS-26.2-arm64-arm-64bit-Mach-O",
+    "python": "3.14.0",
+    "packages": {
+      "gymnasium": "1.4.0",
+      "numpy": "2.5.1",
+      "torch": "2.11.0",
+      "matplotlib": "3.10.7"
+    },
+    "config": {
+      "learning_rate": 0.01,
+      "gamma": 0.99,
+      "gradient_clip_norm": 5.0,
+      "entropy_coefficient": 0.0,
+      "eval_interval": 50,
+      "periodic_eval_episodes": 10,
+      "final_eval_episodes": 30
+    }
+  },
+  "final_eval": {
+    "seeds": [
+      700000
+    ],
+    "scores": [
+      10
+    ],
+    "mean_return": 10.0,
+    "std_return": NaN
+  },
+  "wall_seconds": 0.19252604199573398
+}

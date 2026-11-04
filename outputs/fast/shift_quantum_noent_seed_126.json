@@ -1,0 +1,190 @@
+{
+  "policy": "quantum_noent",
+  "seed": 126,
+  "complete": true,
+  "grid": [
+    0.5,
+    1.0,
+    2.0
+  ],
+  "eval_episodes": 10,
+  "cells": {
+    "g0.5_l0.5": {
+      "gravity_multiplier": 0.5,
+      "length_multiplier": 0.5,
+      "scores": [
+        500,
+        400,
+        463,
+        500,
+        445,
+        365,
+        309,
+        500,
+        500,
+        479
+      ],
+      "mean_return": 446.1
+    },
+    "g0.5_l1": {
+      "gravity_multiplier": 0.5,
+      "length_multiplier": 1.0,
+      "scores": [
+        500,
+        500,
+        500,
+        500,
+        500,
+        500,
+        500,
+        500,
+        500,
+        500
+      ],
+      "mean_return": 500.0
+    },
+    "g0.5_l2": {
+      "gravity_multiplier": 0.5,
+      "length_multiplier": 2.0,
+      "scores": [
+        500,
+        500,
+        500,
+        500,
+        500,
+        327,
+        500,
+        500,
+        500,
+        500
+      ],
+      "mean_return": 482.7
+    },
+    "g1_l0.5": {
+      "gravity_multiplier": 1.0,
+      "length_multiplier": 0.5,
+      "scores": [
+        171,
+        160,
+        199,
+        193,
+        252,
+        232,
+        313,
+        308,
+        247,
+        250
+      ],
+      "mean_return": 232.5
+    },
+    "g1_l1": {
+      "gravity_multiplier": 1.0,
+      "length_multiplier": 1.0,
+      "scores": [
+        406,
+        403,
+        452,
+        390,
+        254,
+        376,
+        417,
+        381,
+        236,
+        374
+      ],
+      "mean_return": 368.9
+    },
+    "g1_l2": {
+      "gravity_multiplier": 1.0,
+      "length_multiplier": 2.0,
+      "scores": [
+        500,
+        438,
+        500,
+        466,
+        500,
+        500,
+        267,
+        421,
+        500,
+        500
+      ],
+      "mean_return": 459.2
+    },
+    "g2_l0.5": {
+      "gravity_multiplier": 2.0,
+      "length_multiplier": 0.5,
+      "scores": [
+        149,
+        75,
+        109,
+        133,
+        126,
+        98,
+        112,
+        85,
+        135,
+        106
+      ],
+      "mean_return": 112.8
+    },
+    "g2_l1": {
+      "gravity_multiplier": 2.0,
+      "length_multiplier": 1.0,
+      "scores": [
+        282,
+        216,
+        237,
+        256,
+        221,
+        263,
+        161,
+        168,
+        384,
+        266
+      ],
+      "mean_return": 245.4
+    },
+    "g2_l2": {
+      "gravity_multiplier": 2.0,
+      "length_multiplier": 2.0,
+      "scores": [
+        288,
+        369,
+        310,
+        302,
+        300,
+        500,
+        348,
+        500,
+        342,
+        381
+      ],
+      "mean_return": 364.0
+    }
+  },
+  "robustness_score": 0.7106750000000001,
+  "source_run": {
+    "timestamp_utc": "2026-11-04T03:04:43.300683+00:00",
+    "git_commit": "76ea5dda586a28b9e9f4384a7fb49187ef87f39f",
+    "git_worktree_dirty": true,
+    "machine": "arm64",
+    "platform": "macOS-26.2-arm64-arm-64bit-Mach-O",
+    "python": "3.14.0",
+    "packages": {
+      "gymnasium": "1.4.0",
+      "numpy": "2.5.1",
+      "torch": "2.11.0",
+      "matplotlib": "3.10.7"
+    },
+    "config": {
+      "learning_rate": 0.01,
+      "gamma": 0.99,
+      "gradient_clip_norm": 5.0,
+      "entropy_coefficient": 0.0,
+      "eval_interval": 50,
+      "periodic_eval_episodes": 10,
+      "final_eval_episodes": 30
+    }
+  }
+}

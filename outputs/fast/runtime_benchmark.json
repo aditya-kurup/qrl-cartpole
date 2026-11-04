@@ -1,0 +1,17 @@
+{
+  "timestamp_utc": "2026-11-04T02:45:24.607530+00:00",
+  "measurements": {
+    "quantum_full": {
+      "seconds_per_training_episode_mean": 0.03188697412406327,
+      "seconds_per_training_episode_median": 0.029538728966144845,
+      "episode_count": 8,
+      "benchmark_wall_seconds": 1.06903054198483
+    },
+    "mlp_raw": {
+      "seconds_per_training_episode_mean": 0.004268895638233516,
+      "seconds_per_training_episode_median": 0.003853125002933666,
+      "episode_count": 8,
+      "benchmark_wall_seconds": 0.19765958399511874
+    }
+  }
+}
