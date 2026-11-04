@@ -35,7 +35,8 @@ class VariationalQuantumPolicy(nn.Module):
     """Small real-amplitude, four-qubit variational circuit with X+Z readout."""
 
     def __init__(self, n_qubits: int = 4, n_layers: int = 2, obs_dim: int = 4,
-                 readout: str = "zx"):
+                 readout: str = "zx", entanglement: bool = True,
+                 trainable_circuit: bool = True):
         super().__init__()
         self.n_qubits = n_qubits
         self.n_layers = n_layers
@@ -50,6 +51,11 @@ class VariationalQuantumPolicy(nn.Module):
             _cnot_permutation(n_qubits, q, (q + 1) % n_qubits)
             for q in range(n_qubits - 1)
         ]))
+        self.entanglement = entanglement
+        if not entanglement:
+            self.cnot_indices = self.cnot_indices[:0]
+        if not trainable_circuit:
+            self.rotations.requires_grad_(False)
         self.obs_scale = math.pi
         self.obs_dim = obs_dim
 
@@ -64,8 +70,9 @@ class VariationalQuantumPolicy(nn.Module):
         for layer in range(self.n_layers):
             for q in range(self.n_qubits):
                 state = _apply_ry(state, self.rotations[layer, q].expand(x.shape[0]), q, self.n_qubits)
-            for indices in self.cnot_indices:
-                state = state[:, indices]
+            if self.entanglement:
+                for indices in self.cnot_indices:
+                    state = state[:, indices]
         return state.squeeze(0) if single else state
 
     def features(self, observations: torch.Tensor) -> torch.Tensor:
@@ -96,9 +103,13 @@ class VariationalQuantumPolicy(nn.Module):
 class ClassicalPolicy(nn.Module):
     """Compact MLP baseline with a parameter budget close to the quantum policy."""
 
-    def __init__(self, obs_dim: int = 4, hidden_dim: int = 3):
+    def __init__(self, obs_dim: int = 4, hidden_dim: int = 3,
+                 tanhpi_input: bool = False):
         super().__init__()
         self.network = nn.Sequential(nn.Linear(obs_dim, hidden_dim), nn.Tanh(), nn.Linear(hidden_dim, 2))
+        self.tanhpi_input = tanhpi_input
 
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
+        if self.tanhpi_input:
+            observations = torch.tanh(observations) * math.pi
         return self.network(observations)

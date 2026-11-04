@@ -55,6 +55,26 @@ def test_every_trainable_parameter_receives_nonzero_gradient():
         assert torch.all(parameter.grad.abs() > 1e-9), (name, parameter.grad)
 
 
+def test_fast_mode_circuit_ablation_controls():
+    no_entanglement = VariationalQuantumPolicy(entanglement=False)
+    frozen = VariationalQuantumPolicy(trainable_circuit=False)
+    observation = torch.tensor([0.2, -0.1, 0.3, 0.4])
+    assert no_entanglement.cnot_indices.shape[0] == 0
+    assert no_entanglement(observation).shape == (2,)
+    assert not frozen.rotations.requires_grad
+    assert frozen.readout.weight.requires_grad
+    assert frozen(observation).shape == (2,)
+
+
+def test_tanhpi_classical_policy_uses_quantum_input_preprocessing():
+    from qrl_cartpole.policies import ClassicalPolicy
+
+    policy = ClassicalPolicy(tanhpi_input=True)
+    observation = torch.tensor([0.2, -0.1, 0.3, 0.4])
+    expected = policy.network(torch.tanh(observation) * np.pi)
+    torch.testing.assert_close(policy(observation), expected)
+
+
 def test_features_match_pennylane_default_qubit():
     qml = pytest.importorskip("pennylane")
     torch.manual_seed(38)
