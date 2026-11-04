@@ -1,0 +1,109 @@
+protocol_version: 1
+title: "Does a variational policy generalise under CartPole dynamics shift?"
+status: preregistered_before_new_training_runs
+environment:
+  id: CartPole-v1
+  nominal:
+    gravity: 9.8
+    masscart: 1.0
+    masspole: 0.1
+    length: 0.5
+    force_mag: 10.0
+  max_episode_steps: 500
+  default_observation_transform: none
+training:
+  algorithm: episodic_REINFORCE
+  gamma: 0.99
+  gradient_clip_norm: 5.0
+  episode_budget: 500
+  evaluation_interval: 10
+  periodic_evaluation_episodes: 20
+  final_evaluation_episodes: 100
+  common_evaluation_seed_start: 50000
+  common_evaluation_seed_count: 100
+  tuning_seeds: [101, 202, 303]
+  confirmatory_training_seeds: [1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018, 1019]
+  pilot_seeds: [9001]
+  hyperparameter_candidates:
+    - {learning_rate: 0.003, entropy_coef: 0.0}
+    - {learning_rate: 0.01, entropy_coef: 0.01}
+  equal_trials_per_policy: 2
+  resumability: per_run_json_and_episode_checkpoint
+  parallel_workers: 4
+  pytorch_threads_per_worker: 1
+metrics:
+  primary:
+    - sustained_threshold_steps
+    - normalized_area_under_evaluation_curve
+    - zero_shot_shift_grid_mean_normalized_return
+  sustained_threshold:
+    score: 475
+    rule: first checkpoint whose score and all later periodic checkpoints are at least 475
+    not_reached_value: episode_budget_plus_one
+  secondary:
+    - final_100_episode_mean_return
+    - nominal_to_shift_relative_performance_drop
+    - per_episode_wall_clock_seconds
+    - parameter_count_split_circuit_and_classical_readout
+statistics:
+  confidence_level: 0.95
+  resamples: 10000
+  unit_of_resampling: training_seed_stratified_by_policy
+  summaries: [mean, median, interquartile_mean, optimality_gap, performance_profile]
+  effect_sizes: paired_seed_difference_with_bootstrap_interval
+  package: local_stratified_bootstrap_equivalent
+policies:
+  - linear
+  - linear_tanhpi
+  - mlp_raw
+  - mlp_tanhpi
+  - mlp_large
+  - quantum_full
+  - quantum_noent
+  - quantum_frozen
+  - quantum_depth0
+  - quantum_zonly
+  - quantum_reupload
+pilot:
+  purpose: choose non-ceiling dynamics-shift ranges only; never include pilot data in confirmatory tables
+  train_policies: [quantum_full, mlp_raw]
+  train_episodes: 300
+  initial_gravity_multipliers: [0.5, 0.75, 1.0, 1.5, 2.0]
+  initial_length_multipliers: [0.25, 0.5, 1.0, 2.0, 4.0]
+  evaluation_episodes_per_cell: 10
+  report_ranges_before_confirmatory_run: true
+experiments:
+  E1:
+    hypothesis: H1. Under exact simulation, the classical baselines will reach the sustained 475-step criterion in fewer environment episodes than quantum_full; report null or reverse results unchanged.
+    design: nominal training and common fixed-seed evaluation for all registered policies.
+  E2:
+    hypothesis: H2. Zero-shot returns will decrease as gravity and pole length move farther from nominal; the quantum-classical difference may depend on the direction of shift and circuit ablation.
+    design: gravity_by_length_grid_fixed_after_pilot; evaluate every E1 trained checkpoint at least 20 episodes per cell per seed.
+  E3:
+    hypothesis: H3. Per-episode domain randomisation over the predeclared training ranges will improve held-out dynamics performance versus nominal-only training for quantum_full and the two MLP controls, at possible cost to nominal return.
+    design: retrain quantum_full, mlp_raw, mlp_large with randomized physics; test held-in and extrapolation shifts.
+    training_ranges:
+      gravity: [0.75, 1.5]
+      length: [0.5, 2.0]
+      masscart: [0.75, 1.25]
+      masspole: [0.75, 1.25]
+      force_mag: [0.75, 1.25]
+  E4:
+    hypothesis: H4. Velocity masking will reduce return more than mild Gaussian observation noise for every policy; input-squashing-matched MLP controls will narrow any apparent quantum/classical gap attributable to preprocessing.
+    design: evaluate nominal-trained policies under fixed observation-noise levels and velocity masking.
+    noise_std_levels: [0.0, 0.01, 0.03, 0.1]
+    velocity_mask_levels: [false, true]
+  E5:
+    hypothesis: H5. Finite shots and depolarizing noise will lower or leave unchanged exact-simulation returns; hardware-equivalent circuit-execution counts will grow with the parameter count.
+    status: stretch_only_after_E1_E4
+  E6:
+    hypothesis: H6. Re-uploading changes the accessible input-frequency spectrum and may alter shift robustness; direction is two-sided.
+    status: stretch_only_after_E1_E4
+runtime_stop_rule:
+  maximum_estimated_core_runtime_hours: 24
+  action_if_exceeded: reduce_confirmatory_training_seeds_to_10_and_record_reason_before_runs
+  runtime_estimate_must_include: [training, periodic_evaluation, final_evaluation, E2, E3, E4]
+nonclaims:
+  - no_quantum_advantage
+  - no_quantum_hardware_speedup
+  - no_general_claim_from_single_environment_family
