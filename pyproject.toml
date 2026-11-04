@@ -10,6 +10,12 @@ dependencies = [
   "torch>=2.4",
 ]
 
+[project.optional-dependencies]
+study = [
+  "pennylane==0.44.1",
+  "pytest==9.0.2",
+]
+
 [project.scripts]
 qrl-cartpole = "qrl_cartpole.experiment:main"
 qrl-dashboard = "qrl_cartpole.dashboard:main"

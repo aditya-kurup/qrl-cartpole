@@ -2,9 +2,9 @@
 __pycache__/
 *.py[cod]
 outputs/*
-!outputs/final/
-outputs/final/*
-!outputs/final/*.json
-!outputs/final/*.png
+!outputs/legacy/
+!outputs/legacy/**
+!outputs/study/
+!outputs/study/**
 *.egg-info/
 .DS_Store

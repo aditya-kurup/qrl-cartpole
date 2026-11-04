@@ -3,8 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import importlib.metadata
 import json
+import platform
 import random
+import subprocess
+import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import gymnasium as gym
@@ -61,7 +66,7 @@ def evaluate(policy: torch.nn.Module, seed: int, episodes: int = 5) -> float:
 def train_one(policy_name: str, seed: int, episodes: int, learning_rate: float,
               gamma: float, eval_interval: int, output_dir: Path,
               quantum_layers: int = 2, entropy_coef: float = 0.0,
-              quantum_readout: str = "zx") -> dict:
+              quantum_readout: str = "zx", cli_config: dict | None = None) -> dict:
     seed_everything(seed)
     policy = make_policy(policy_name, quantum_layers, quantum_readout)
     optimizer = torch.optim.Adam(policy.parameters(), lr=learning_rate)
@@ -112,10 +117,57 @@ def train_one(policy_name: str, seed: int, episodes: int, learning_rate: float,
         "quantum_layers": quantum_layers,
         "entropy_coef": entropy_coef,
         "quantum_readout": quantum_readout,
+        "metadata": {
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "git_commit": _git_commit(),
+            "machine": platform.machine(),
+            "platform": platform.platform(),
+            "python": sys.version.split()[0],
+            "packages": {
+                package: _package_version(distribution)
+                for package, distribution in {
+                    "gymnasium": "gymnasium",
+                    "numpy": "numpy",
+                    "torch": "torch",
+                }.items()
+            },
+            "cli_config": _jsonable_config(cli_config or {
+                "episodes": episodes,
+                "seeds": [seed],
+                "learning_rate": learning_rate,
+                "gamma": gamma,
+                "eval_interval": eval_interval,
+                "quantum_layers": quantum_layers,
+                "quantum_readout": quantum_readout,
+                "entropy_coef": entropy_coef,
+                "out_dir": str(output_dir),
+            }),
+        },
     }
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / f"{policy_name}_seed_{seed}.json").write_text(json.dumps(result, indent=2) + "\n")
     return result
+
+
+def _git_commit() -> str | None:
+    try:
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"], check=True, capture_output=True,
+            text=True, timeout=2,
+        ).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+def _package_version(name: str) -> str | None:
+    try:
+        return importlib.metadata.version(name)
+    except importlib.metadata.PackageNotFoundError:
+        return None
+
+
+def _jsonable_config(config: dict) -> dict:
+    return {key: str(value) if isinstance(value, Path) else value for key, value in config.items()}
 
 
 def main() -> None:
@@ -140,7 +192,8 @@ def main() -> None:
         for policy_name in args.policies:
             results.append(train_one(policy_name, seed, args.episodes, args.learning_rate,
                                      args.gamma, args.eval_interval, args.out_dir,
-                                     args.quantum_layers, args.entropy_coef, args.quantum_readout))
+                                     args.quantum_layers, args.entropy_coef, args.quantum_readout,
+                                     cli_config=vars(args)))
     (args.out_dir / "results.json").write_text(json.dumps(results, indent=2) + "\n")
     from .plotting import make_figures
     make_figures(results, args.out_dir)

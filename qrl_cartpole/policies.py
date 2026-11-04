@@ -9,11 +9,11 @@ from torch import nn
 
 
 def _apply_ry(state: torch.Tensor, angles: torch.Tensor, qubit: int, n_qubits: int) -> torch.Tensor:
-    """Apply batched real-valued RY rotations to statevectors."""
+    """Apply batched RY rotations using little-endian flat-statevector qubits."""
     batch = state.shape[0]
     tensor = state.reshape(batch, *([2] * n_qubits))
     axes = list(range(n_qubits + 1))
-    target_axis = qubit + 1
+    target_axis = n_qubits - qubit
     axes = [axis for axis in axes if axis != target_axis] + [target_axis]
     pairs = tensor.permute(axes).contiguous().reshape(-1, 2)
     c = torch.cos(angles / 2).repeat_interleave(pairs.shape[0] // batch)
@@ -53,7 +53,7 @@ class VariationalQuantumPolicy(nn.Module):
         self.obs_scale = math.pi
         self.obs_dim = obs_dim
 
-    def forward(self, observations: torch.Tensor) -> torch.Tensor:
+    def statevector(self, observations: torch.Tensor) -> torch.Tensor:
         single = observations.ndim == 1
         x = observations.unsqueeze(0) if single else observations
         angles = torch.tanh(x[:, :self.n_qubits]) * self.obs_scale
@@ -66,20 +66,31 @@ class VariationalQuantumPolicy(nn.Module):
                 state = _apply_ry(state, self.rotations[layer, q].expand(x.shape[0]), q, self.n_qubits)
             for indices in self.cnot_indices:
                 state = state[:, indices]
+        return state.squeeze(0) if single else state
+
+    def features(self, observations: torch.Tensor) -> torch.Tensor:
+        single = observations.ndim == 1
+        state = self.statevector(observations)
+        if single:
+            state = state.unsqueeze(0)
         probabilities = state.square()
-        z_signs = 1.0 - 2.0 * ((self.basis[:, None] >> torch.arange(self.n_qubits, device=x.device)) & 1).to(x.dtype)
+        z_signs = 1.0 - 2.0 * (
+            (self.basis[:, None] >> torch.arange(self.n_qubits, device=state.device)) & 1
+        ).to(state.dtype)
         z_expectations = probabilities @ z_signs
         if self.readout_kind == "zx":
             x_expectations = []
             for q in range(self.n_qubits):
                 bit = 1 << q
                 paired = state * state[:, self.basis ^ bit]
-                x_expectations.append(2.0 * paired.sum(dim=1))
+                x_expectations.append(paired.sum(dim=1))
             expectations = torch.cat((z_expectations, torch.stack(x_expectations, dim=1)), dim=1)
         else:
             expectations = z_expectations
-        logits = self.readout(expectations)
-        return logits.squeeze(0) if single else logits
+        return expectations.squeeze(0) if single else expectations
+
+    def forward(self, observations: torch.Tensor) -> torch.Tensor:
+        return self.readout(self.features(observations))
 
 
 class ClassicalPolicy(nn.Module):
