@@ -2,7 +2,7 @@
 
 | Phase | Status | Summary | Commit |
 |---|---|---|---|
-| 0. Audit and correctness | Complete | Fixed X scaling and wire ordering; 6 tests pass; 100-case PennyLane cross-check max error `3.99e-7`; legacy outputs archived. | Pending commit |
+| 0. Audit and correctness | Complete | Fixed X scaling and wire ordering; 6 tests pass; 100-case PennyLane cross-check max error `3.99e-7`; legacy outputs archived. | `7c2048a` |
 | 1. Dynamics shifts | Not started |  |  |
 | 2. Policies and ablations | Not started |  |  |
 | 3. Predeclared protocol | Not started |  |  |
