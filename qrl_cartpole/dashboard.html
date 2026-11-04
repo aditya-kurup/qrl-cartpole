@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quantum CartPole | Experiment dashboard</title>
+  <style>
+    :root { color-scheme: light; --ink:#17242b; --muted:#66747b; --line:#dce3e5; --paper:#f3f6f5; --white:#fff; --q:#cf4054; --c:#007f86; --gold:#bf7b10; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    header { background:#143941; color:white; padding:24px max(24px,calc((100vw - 1280px)/2)); display:flex; justify-content:space-between; align-items:end; gap:24px; }
+    header h1 { margin:0; font-size:25px; font-weight:650; }
+    header p { margin:5px 0 0; color:#c5d7d7; }
+    .status { color:#c5d7d7; white-space:nowrap; font-size:13px; }
+    main { max-width:1280px; padding:22px 24px 38px; margin:auto; }
+    .toolbar { display:flex; align-items:center; flex-wrap:wrap; gap:18px; padding:0 0 18px; border-bottom:1px solid var(--line); }
+    .group { display:flex; align-items:center; flex-wrap:wrap; gap:9px; }
+    .group-label { color:var(--muted); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-right:2px; }
+    label { display:inline-flex; align-items:center; gap:7px; cursor:pointer; }
+    input { accent-color:var(--c); }
+    select { border:1px solid #bdc9cb; background:white; color:var(--ink); padding:7px 28px 7px 9px; border-radius:4px; font:inherit; }
+    .metrics { display:grid; grid-template-columns:repeat(4,minmax(130px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); margin:18px 0; }
+    .metric { background:var(--white); padding:15px 17px; min-height:83px; }
+    .metric span { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
+    .metric strong { display:block; font-size:25px; margin-top:5px; font-variant-numeric:tabular-nums; }
+    .grid { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr); gap:16px; align-items:start; }
+    section { background:white; border:1px solid var(--line); padding:15px 16px 12px; min-width:0; }
+    section h2 { margin:0; font-size:16px; font-weight:650; }
+    .sub { color:var(--muted); margin:3px 0 8px; font-size:12px; }
+    svg.chart { display:block; width:100%; height:auto; overflow:visible; }
+    .axis { stroke:#aebabc; stroke-width:1; }
+    .gridline { stroke:#e7ecec; stroke-width:1; }
+    .tick { fill:#68777b; font-size:11px; }
+    .legend { display:flex; gap:16px; color:#435258; font-size:12px; margin-top:2px; }
+    .key { width:18px; height:3px; display:inline-block; vertical-align:middle; margin-right:5px; }
+    .circuit { display:block; width:100%; height:auto; margin-top:10px; }
+    .table-wrap { overflow:auto; margin-top:16px; background:white; border:1px solid var(--line); }
+    table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+    th,td { text-align:right; padding:10px 14px; border-bottom:1px solid #e8eded; }
+    th:first-child,td:first-child { text-align:left; }
+    th { color:var(--muted); font-size:12px; font-weight:650; }
+    tr:last-child td { border-bottom:0; }
+    .method { color:var(--muted); font-size:12px; margin:12px 0 0; }
+    .error { padding:32px; color:#9c2638; }
+    @media(max-width:820px) { header { align-items:start; flex-direction:column; gap:8px; } .grid { grid-template-columns:1fr; } .metrics { grid-template-columns:repeat(2,minmax(120px,1fr)); } }
+    @media(max-width:480px) { main { padding:16px 12px 28px; } header { padding:18px 14px; } .metrics { grid-template-columns:1fr 1fr; } .metric { padding:12px; } .metric strong { font-size:21px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div><h1>Quantum CartPole</h1><p>Variational policy and classical baseline · CartPole-v1</p></div>
+    <div class="status" id="status">Loading experiment results…</div>
+  </header>
+  <main id="app" hidden>
+    <div class="toolbar">
+      <div class="group"><span class="group-label">Policies</span><label><input type="checkbox" id="showQuantum" checked> Quantum</label><label><input type="checkbox" id="showClassical" checked> Classical</label></div>
+      <div class="group"><span class="group-label">Seeds</span><select id="seedSelect" aria-label="Select seeds" multiple size="1"></select></div>
+      <div class="group"><span class="group-label">Smoothing</span><select id="windowSelect" aria-label="Smoothing window"><option value="1">Raw</option><option value="10">10 episodes</option><option value="15" selected>15 episodes</option><option value="30">30 episodes</option></select></div>
+    </div>
+    <div class="metrics" id="metrics"></div>
+    <div class="grid">
+      <section><h2>Learning curves</h2><p class="sub">Training return across selected seeds; shaded area shows ±1 standard deviation.</p><svg id="learning" class="chart" viewBox="0 0 800 360" role="img" aria-label="Policy learning curves"></svg><div class="legend"><span><i class="key" style="background:var(--q)"></i>Quantum</span><span><i class="key" style="background:var(--c)"></i>Classical</span><span>Dashed line: 500-step cap</span></div></section>
+      <section><h2>Final greedy evaluation</h2><p class="sub">Mean episode length over the final five evaluation episodes.</p><svg id="evaluation" class="chart" viewBox="0 0 440 360" role="img" aria-label="Final evaluation by seed"></svg><h2 style="margin-top:17px">Policy circuit</h2><img class="circuit" src="/circuit.png" alt="Four-qubit variational circuit diagram"></section>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Policy</th><th>Seed</th><th>Parameters</th><th>Final train mean<br>(last 15 episodes)</th><th>Final greedy eval<br>(5 episodes)</th><th>Best eval<br>(5 episodes)</th></tr></thead><tbody id="runs"></tbody></table></div>
+    <p class="method">The circuit is an exact 16-amplitude statevector simulation. This comparison demonstrates a variational policy; it does not claim quantum hardware speedup or quantum advantage.</p>
+  </main>
+  <script>
+    const colors={quantum:'#cf4054',classical:'#007f86'}, names={quantum:'Quantum',classical:'Classical'};
+    let all=[];
+    const $=id=>document.getElementById(id);
+    function selected(){const chosen=[...$('seedSelect').selectedOptions].map(o=>Number(o.value));return all.filter(r=>chosen.includes(r.seed));}
+    function activePolicies(){return ['quantum','classical'].filter((n)=>$(n==='quantum'?'showQuantum':'showClassical').checked);}
+    function avg(a){return a.length?a.reduce((s,x)=>s+x,0)/a.length:0;}
+    function path(points){return points.map((p,i)=>`${i?'L':'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');}
+    function axes(svg,w,h,maxX,yMax,yStep){let s=`<line class="axis" x1="52" y1="${h-34}" x2="${w-12}" y2="${h-34}"/><line class="axis" x1="52" y1="18" x2="52" y2="${h-34}"/>`;
+      for(let y=0;y<=yMax;y+=yStep){let py=h-34-y/yMax*(h-58);s+=`<line class="gridline" x1="52" y1="${py}" x2="${w-12}" y2="${py}"/><text class="tick" x="43" y="${py+4}" text-anchor="end">${y}</text>`;}
+      for(let i=0;i<=4;i++){let x=Math.round(i/4*maxX),px=52+i/4*(w-70);s+=`<text class="tick" x="${px}" y="${h-12}" text-anchor="middle">${x}</text>`;}
+      s+=`<text class="tick" x="${w/2}" y="${h-1}" text-anchor="middle">Training episode</text>`;return s;}
+    function renderLearning(runs,policies){const svg=$('learning'),w=800,h=360,maxX=Math.max(1,...runs.map(r=>r.episode_returns.length)),yMax=500,win=Number($('windowSelect').value);let s=axes(svg,w,h,maxX,yMax,100),cap=h-34-500/yMax*(h-58);s+=`<line x1="52" y1="${cap}" x2="${w-12}" y2="${cap}" stroke="#bf7b10" stroke-dasharray="5 5"/>`;
+      for(const name of policies){const rows=runs.filter(r=>r.policy===name);if(!rows.length)continue;const curves=rows.map(r=>{let a=r.episode_returns;return a.map((_,i)=>avg(a.slice(Math.max(0,i-win+1),i+1)));}),len=Math.min(...curves.map(c=>c.length)),means=[],std=[];for(let i=0;i<len;i++){let vals=curves.map(c=>c[i]),m=avg(vals);means.push(m);std.push(Math.sqrt(avg(vals.map(v=>(v-m)**2))));}const px=i=>52+(len<=1?0:i/(maxX-1))*(w-70),py=v=>h-34-Math.max(0,Math.min(yMax,v))/yMax*(h-58);let top=means.map((m,i)=>[px(i),py(m+std[i])]),bottom=means.map((m,i)=>[px(i),py(m-std[i])]).reverse();s+=`<path d="${path(top)} ${bottom.map(p=>`L${p[0]},${p[1]}`).join(' ')} Z" fill="${colors[name]}" opacity=".13"/><path d="${path(means.map((m,i)=>[px(i),py(m)]))}" fill="none" stroke="${colors[name]}" stroke-width="2.7"/>`;}
+      svg.innerHTML=s;}
+    function renderEval(runs,policies){const svg=$('evaluation'),w=440,h=360,yMax=500;let s=axes(svg,w,h,1,yMax,100);for(let n=0;n<policies.length;n++){const name=policies[n],rows=runs.filter(r=>r.policy===name),x=135+n*170;rows.forEach((r,i)=>{let v=r.evaluations.at(-1)?.mean_return??0,y=h-34-v/yMax*(h-58);s+=`<circle cx="${x+(i-(rows.length-1)/2)*17}" cy="${y}" r="5.5" fill="${colors[name]}" opacity=".75"><title>${names[name]} seed ${r.seed}: ${v.toFixed(1)}</title></circle>`;});let m=avg(rows.map(r=>r.evaluations.at(-1)?.mean_return??0)),my=h-34-m/yMax*(h-58);s+=`<path d="M${x-9} ${my} L${x} ${my-9} L${x+9} ${my} L${x} ${my+9} Z" fill="#17242b"/><text class="tick" x="${x}" y="${h-12}" text-anchor="middle">${names[name]}</text>`;}svg.innerHTML=s;}
+    function render(){const runs=selected(),policies=activePolicies();renderLearning(runs,policies);renderEval(runs,policies);const metrics=[];for(const n of policies){const rows=runs.filter(r=>r.policy===n),final=rows.map(r=>r.evaluations.at(-1)?.mean_return??0);metrics.push(`<div class="metric"><span>${names[n]} · final greedy mean</span><strong>${avg(final).toFixed(1)}<small style="font-size:13px;color:#66747b"> / 500</small></strong></div>`);}metrics.push(`<div class="metric"><span>Runs selected</span><strong>${runs.length}</strong></div>`);metrics.push(`<div class="metric"><span>Training episodes</span><strong>${Math.max(0,...runs.map(r=>r.episodes))}</strong></div>`);$('metrics').innerHTML=metrics.join('');$('runs').innerHTML=runs.filter(r=>policies.includes(r.policy)).map(r=>{let ev=r.evaluations.map(e=>e.mean_return),last=avg(r.episode_returns.slice(-15));return `<tr><td>${names[r.policy]}</td><td>${r.seed}</td><td>${r.parameter_count}</td><td>${last.toFixed(1)}</td><td>${(ev.at(-1)??0).toFixed(1)}</td><td>${Math.max(0,...ev).toFixed(1)}</td></tr>`;}).join('');}
+    fetch('/results').then(r=>{if(!r.ok)throw Error('Could not load results.json');return r.json();}).then(data=>{all=data;const seeds=[...new Set(all.map(r=>r.seed))].sort((a,b)=>a-b);$('seedSelect').innerHTML=seeds.map(x=>`<option value="${x}" selected>${x}</option>`).join('');$('status').textContent=`${seeds.length} seeds · ${all[0]?.episodes??0} episodes per run`;$('app').hidden=false;render();}).catch(e=>{$('status').textContent='Results unavailable';$('app').hidden=false;$('app').innerHTML=`<section class="error"><h2>Could not load experiment results</h2><p>${e.message}. Run the experiment first, then start the dashboard with the same results path.</p></section>`;});
+    ['showQuantum','showClassical','seedSelect','windowSelect'].forEach(id=>$(id).addEventListener('change',render));
+  </script>
+</body>
+</html>

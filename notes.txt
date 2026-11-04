@@ -1,0 +1,9 @@
+Experiment: Variational quantum policy versus MLP on CartPole-v1
+
+Protocol: Match the policy-gradient algorithm, optimizer, reward, observation stream, and evaluation cadence; vary only policy architecture. Use three random seeds. Record episode returns and periodic greedy evaluation over five episodes.
+
+Models: Four-qubit exact statevector with two RY/CNOT variational layers and X+Z readout (26 trainable parameters); 4-3-2 tanh MLP baseline (23 trainable parameters).
+
+Final run: 500 training episodes per seed; Adam learning rate 0.01; gamma 0.99; X+Z expectation readout. Outputs are saved under outputs/final/.
+
+Interpretation: These curves compare small policy parameterizations under this training setup. They are not evidence of quantum hardware speedup or quantum advantage. No result is recorded until an experiment is run.

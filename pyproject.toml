@@ -1,0 +1,21 @@
+[project]
+name = "quantum-cartpole"
+version = "0.1.0"
+description = "Compare a variational quantum policy with an MLP on CartPole"
+requires-python = ">=3.11,<3.15"
+dependencies = [
+  "gymnasium[classic-control]>=1.0,<2",
+  "matplotlib>=3.8",
+  "numpy>=1.26",
+  "torch>=2.4",
+]
+
+[project.scripts]
+qrl-cartpole = "qrl_cartpole.experiment:main"
+qrl-dashboard = "qrl_cartpole.dashboard:main"
+
+[tool.setuptools.packages.find]
+include = ["qrl_cartpole*"]
+
+[tool.setuptools.package-data]
+qrl_cartpole = ["dashboard.html"]
